@@ -158,8 +158,8 @@ std::any a_run( struct a_run_prop &p){
 								
 									op2 = read_dat(p.memory,std::any_cast<struct dat_index>(op2).id);
 							}
-							
-							a_loc_var_set_func f = p.l_var_set_tbl.find(std::string(std::any_cast<std::string>(op2)))->second;
+							auto fit=p.l_var_set_tbl.find(std::string(std::any_cast<std::string>(op2)));
+							a_loc_var_set_func f = fit->second;
 							
 							f(op1);
 							
@@ -178,7 +178,8 @@ std::any a_run( struct a_run_prop &p){
 									op1 = read_dat(p.memory,std::any_cast<struct dat_index>(op1).id);
 							}
 
-							a_loc_var_get_func f = p.l_var_get_tbl.find(std::string(std::any_cast<std::string>(op1)))->second;
+							auto fit = p.l_var_get_tbl.find(std::string(std::any_cast<std::string>(op1)));
+							a_loc_var_get_func f = fit->second;
 							
 
 

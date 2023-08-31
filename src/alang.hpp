@@ -5,8 +5,14 @@
 
 #include <stack>
 
+
+typedef void (*a_loc_var_set_func)(std::any); 
+typedef std::any (*a_loc_var_get_func)(); 
+
 struct a_run_prop{
 	std::unordered_map<std::string,unsigned long> lbl_tbl;
+	std::unordered_map<std::string,a_loc_var_set_func> l_var_set_tbl;
+	std::unordered_map<std::string,a_loc_var_get_func> l_var_get_tbl;
 	std::vector<std::any> memory;
 	char *pped;	
 	std::stack<unsigned long> stack;

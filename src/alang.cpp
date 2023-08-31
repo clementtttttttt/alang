@@ -141,6 +141,60 @@ std::any a_run( struct a_run_prop &p){
 							break;
 								
 						}
+						case swap('lst'):
+						{	
+							++tok;
+							std::any op1 = parse_arg(*tok, p.memory);
+							
+							if((op1.type()) == typeid(struct dat_index)){
+								
+									op1 = read_dat(p.memory,std::any_cast<struct dat_index>(op1).id);
+							}
+
+							++tok;
+							std::any op2 = parse_arg(*tok,p.memory);
+
+							if((op2.type()) == typeid(struct dat_index)){
+								
+									op2 = read_dat(p.memory,std::any_cast<struct dat_index>(op2).id);
+							}
+							
+							a_loc_var_set_func f = p.l_var_set_tbl.find(std::string(std::any_cast<std::string>(op2)))->second;
+							
+							f(op1);
+							
+							break;
+								
+						}
+						case swap('lgt'):
+						{	
+							++tok;
+							
+
+							std::any op1 = parse_arg(*tok, p.memory);
+							
+							if((op1.type()) == typeid(struct dat_index)){
+								
+									op1 = read_dat(p.memory,std::any_cast<struct dat_index>(op1).id);
+							}
+
+							a_loc_var_get_func f = p.l_var_get_tbl.find(std::string(std::any_cast<std::string>(op1)))->second;
+							
+
+
+							++tok;
+							std::any op2 = parse_arg(*tok,p.memory);
+
+							if((op2.type()) == typeid(struct dat_index)){
+								
+									write_dat(p.memory,std::any_cast<struct dat_index>(op2).id,f());
+							}
+							else{
+									std::cout << "ERROR: TRYING TO MOV VALUE TO CONSTANT" << std::endl;
+							}
+							break;
+								
+						}
 						case swap('ast'):
 						{	
 							++tok;
@@ -245,6 +299,30 @@ std::any a_run( struct a_run_prop &p){
 							if((op2.type()) == typeid(struct dat_index)){
 								
 									write_dat(p.memory,std::any_cast<struct dat_index>(op2).id,sin(std::any_cast<double>(op1)));
+							}
+							else{
+									std::cout << "ERROR: TRYING TO MOV VALUE TO CONSTANT" << std::endl;
+							}
+							
+							break;
+															
+						}
+						case swap('cos'):
+						{
+							++tok;
+							std::any op1 = parse_arg(*tok, p.memory);
+							
+							if((op1.type()) == typeid(struct dat_index)){
+								
+									op1 = read_dat(p.memory,std::any_cast<struct dat_index>(op1).id);
+							}
+							++tok;
+							
+							std::any op2 = parse_arg(*tok,p.memory);
+							
+							if((op2.type()) == typeid(struct dat_index)){
+								
+									write_dat(p.memory,std::any_cast<struct dat_index>(op2).id,cos(std::any_cast<double>(op1)));
 							}
 							else{
 									std::cout << "ERROR: TRYING TO MOV VALUE TO CONSTANT" << std::endl;

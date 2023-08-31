@@ -1,5 +1,4 @@
-CMNT sum=vd2 flip=vd3
-
-ast cd4 ci10 vd0
-agt vd0 ci10 vd5
-prn vd5 cs\n eas
+mov cd10 vd0
+mov cd4 vd1
+mod vd0 vd1 vd0 
+prn vd0 cs\n eas 

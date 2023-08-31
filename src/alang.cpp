@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <type_traits>
 #include <cmath>
+#include <iomanip>
 
 
 template<class T>
@@ -61,7 +62,7 @@ static std::any parse_arg(char *arg, std::vector<std::any> &dat){
 		switch(arg[1]){
 			case 'd':
 			{
-					return ((struct dat_index){std::atoi(&arg[2])});
+					return ((struct dat_index){std::atol(&arg[2])});
 			}
 			case 'l':
 			{
@@ -80,15 +81,16 @@ static std::any parse_arg(char *arg, std::vector<std::any> &dat){
 
 static int comp(std::any op1, std::any op2){
 	double o1,o2;
-	if(op1.type().name()[0] == 'd') o1 = std::any_cast<double>(op1);
-	if(op2.type().name()[0] == 'd') o2 = std::any_cast<double>(op2);
-
+	if(op1.type() == typeid(double)) o1 = std::any_cast<double>(op1);
+	if(op2.type() == typeid(double)) o2 = std::any_cast<double>(op2);
+	if(op1.type() == typeid(long)) o1 = std::any_cast<long>(op1);
+	if(op2.type() == typeid(long)) o2 = std::any_cast<long>(op2);
 	return (o1==o2);
 	
 }
 
 long any_to_int(std::any in){
-	int i;
+	long i;
 	
 	if(in.type() == typeid(double)) i = std::any_cast<double>(in);
 	else 	if(in.type() == typeid(long)) i = std::any_cast<long>(in);
@@ -159,6 +161,8 @@ std::any a_run( struct a_run_prop &p){
 							}
 							long idx = any_to_int(opid);
 							
+							if(idx <0) {std::cout << "TRYING TO ACCESS NEGATIVE IDX" << std::endl;return nullptr;}
+							
 							++tok;
 							
 														
@@ -171,19 +175,16 @@ std::any a_run( struct a_run_prop &p){
 							}
 														
 
-
-									std::any &arr = op2;
 																	
-									if(arr.type() != typeid(std::vector<std::any>)) arr = std::vector<std::any>();
+									if(op2.type() != typeid(std::vector<std::any>)) op2 = std::vector<std::any>(10);
 									
-									std::vector<std::any> ve = std::any_cast<std::vector<std::any>>(arr);
+									std::vector<std::any> ve = std::any_cast<std::vector<std::any>>(op2);
 									
 									if(idx >= ve.size() ){ve.resize(idx+1);
 									}
 									ve[idx] = op1;
 								
 									write_dat(p.memory,midx,ve);
-							
 						
 							break;
 								
@@ -288,7 +289,7 @@ std::any a_run( struct a_run_prop &p){
 									std::cout << std::any_cast<std::string>(op);
 								}
 								if(op.type() == typeid(double)){
-									std::cout << std::any_cast<double>(op);
+									std::cout << std::fixed<<std::setprecision(5) << std::any_cast<double>(op);
 								}
 								if(op.type() == typeid(long)){
 									std::cout << std::any_cast<long>(op);
@@ -430,7 +431,72 @@ std::any a_run( struct a_run_prop &p){
 							
 							break;
 						}
+						case swap('subi'):
 						case swap('sub'):
+						{
+							++tok;
+
+							std::any op1 = parse_arg(*tok, p.memory);
+							
+							unsigned long idx;
+							
+							if((op1.type()) == typeid(struct dat_index)){
+								
+									op1 = read_dat(p.memory,idx=std::any_cast<struct dat_index>(op1).id);
+							}
+							
+							
+							++tok;
+							
+							std::any op2 = parse_arg(*tok,p.memory);
+							
+							if((op2.type()) == typeid(struct dat_index)){
+								
+									op2 = read_dat(p.memory,std::any_cast<struct dat_index>(op2).id);
+							}
+							double o1=0;
+							double o2=0;
+							long io1=0,io2=0;
+							
+							bool use_float;
+							if(n == swap('sub')){
+								o1 = std::any_cast<double>(op1);
+								o2 = std::any_cast<double>(op2);
+								use_float=true;
+							}
+							else{
+								if(op1.type() != typeid(long)){
+									io1 = std::any_cast<double>(op1);
+								}else{
+									io1 = std::any_cast<long>(op1);
+								}
+								io2 = std::any_cast<long>(op2); 
+								use_float = false;
+							}
+
+							
+							++tok;
+							
+							std::any op3 = parse_arg(*tok,p.memory);
+							
+							if((op3.type()) == typeid(struct dat_index)){
+								std::any v;
+									if(use_float ==true){
+										v = (o1-o2);
+									}
+									else{
+										v= (io1-io2);									
+									}
+									write_dat(p.memory,std::any_cast<struct dat_index>(op3).id,v);
+
+							}					else{
+									std::cout << "ERROR: TRYING TO MOV VALUE TO CONSTANT(SUB)" << std::endl;
+									return nullptr;
+							}
+							
+							break;
+						}
+							case swap('mod'):
 						{
 							++tok;
 
@@ -455,60 +521,22 @@ std::any a_run( struct a_run_prop &p){
 							
 							
 							double o1 = std::any_cast<double>(op1);
-							double o2=std::any_cast<double>(op2);
+							double o2;
 							
+							if(op2.type() == typeid(double))
+							o2=std::any_cast<double>(op2);
+							else o2 = std::any_cast<long>(op2);
+														
 							++tok;
 							
 							std::any op3 = parse_arg(*tok,p.memory);
 							
 							if((op3.type()) == typeid(struct dat_index)){
 								
-									write_dat(p.memory,std::any_cast<struct dat_index>(op3).id,o1-o2);
+									write_dat(p.memory,std::any_cast<struct dat_index>(op3).id,fmod(o1,o2));
 
 							}					else{
-									std::cout << "ERROR: TRYING TO MOV VALUE TO CONSTANT(SUB)" << std::endl;
-									return nullptr;
-							}
-							
-							break;
-						}
-						case swap('subi'):
-						{
-							++tok;
-
-							std::any op1 = parse_arg(*tok, p.memory);
-							
-							unsigned long idx;
-							
-							if((op1.type()) == typeid(struct dat_index)){
-								
-									op1 = read_dat(p.memory,idx=std::any_cast<struct dat_index>(op1).id);
-							}
-							
-							
-							++tok;
-							
-							std::any op2 = parse_arg(*tok,p.memory);
-							
-							if((op2.type()) == typeid(struct dat_index)){
-								
-									op2 = read_dat(p.memory,std::any_cast<struct dat_index>(op2).id);
-							}
-							
-							
-							long o1 = std::any_cast<long>(op1);
-							long  o2=std::any_cast<long>(op2);
-							
-							++tok;
-							
-							std::any op3 = parse_arg(*tok,p.memory);
-							
-							if((op3.type()) == typeid(struct dat_index)){
-								
-									write_dat(p.memory,std::any_cast<struct dat_index>(op3).id,o1-o2);
-
-							}					else{
-									std::cout << "ERROR: TRYING TO MOV VALUE TO CONSTANT(SUBI)" << std::endl;
+									std::cout << "ERROR: TRYING TO MOV VALUE TO CONSTANT(DIV)" << std::endl;
 									return nullptr;
 							}
 							
@@ -539,8 +567,12 @@ std::any a_run( struct a_run_prop &p){
 							
 							
 							double o1 = std::any_cast<double>(op1);
-							double o2=std::any_cast<double>(op2);
+							double o2;
 							
+							if(op2.type() == typeid(double))
+							o2=std::any_cast<double>(op2);
+							else o2 = std::any_cast<long>(op2);
+														
 							++tok;
 							
 							std::any op3 = parse_arg(*tok,p.memory);
@@ -603,6 +635,7 @@ std::any a_run( struct a_run_prop &p){
 							break;
 						}						
 						case swap('add'):
+						case swap('addi'):
 						{
 							++tok;
 
@@ -629,11 +662,25 @@ std::any a_run( struct a_run_prop &p){
 							}
 							
 							
-							double o1 = std::any_cast<double>(op1);
-							double o2=std::any_cast<double>(op2);
+							double o1=0;
+							double o2=0;
+							long io1=0,io2=0;
 							
+							bool use_float = false;
+							if(n == swap('add')){
+								o1 = std::any_cast<double>(op1);
+								o2 = std::any_cast<double>(op1);
+								use_float=true;
+															write_dat(p.memory,idx,(o1+o2));
+
+							}
+							else{
+								io1 = std::any_cast<long>(op1);
+								io2 = std::any_cast<long>(op2);
+															write_dat(p.memory,idx,(long)(io1+io2));
+ 
+							}
 								
-							write_dat(p.memory,idx,o1+o2);
 
 											
 							
@@ -666,8 +713,16 @@ std::any a_run( struct a_run_prop &p){
 							}
 							
 							
-							double o1 = std::any_cast<double>(op1);
-							double o2=std::any_cast<double>(op2);
+							double o1;
+							
+							if(op1.type() == typeid(double))
+							o1=std::any_cast<double>(op1);
+							else o1 = std::any_cast<long>(op1);
+							double o2;
+							
+							if(op2.type() == typeid(double))
+							o2=std::any_cast<double>(op2);
+							else o2 = std::any_cast<long>(op2);
 							
 								
 							write_dat(p.memory,idx,o1*o2);
@@ -697,6 +752,8 @@ void replace_all(std::string& subject, const std::string& search,
 }
 
 void a_pprocess(std::string in, struct a_run_prop &p){
+							replace_all(in, "\t"," ");
+
 			replace_all(in, "\n"," ");
 		replace_all(in,"\\n","\n");
 		
@@ -707,9 +764,9 @@ void a_pprocess(std::string in, struct a_run_prop &p){
 		p.tokz.clear();
 		
 		char *tokp=strtok(p.pped," ");
-		char *old;
+		char *old=nullptr;
 		do{
-			if(!strcmp(old,"lbl")){
+			if(old && !strcmp(old,"lbl")){
 					p.lbl_tbl.insert({std::string(tokp),count});
 			}
 			p.tokz.push_back(tokp);

@@ -4,7 +4,7 @@ CXX ?=# FILL: the compiler
 CFLAGS := # FILL: compile flags
 CXXFLAGS :=  # FILL: compile flags
 DBGFLAGS := -g 
-COBJFLAGS := $(CXXFLAGS) -O3 -c -g
+COBJFLAGS := $(CXXFLAGS) -O3 -c 
 
 # path macros
 BIN_PATH := bin

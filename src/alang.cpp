@@ -302,6 +302,7 @@ std::any a_run( struct a_run_prop &p){
 							break;
 						}
 						case swap('jio'):
+						case swap('jiz'):
 						{
 							++tok;
 							std::any op1 = parse_arg(*tok, p.memory);
@@ -311,6 +312,8 @@ std::any a_run( struct a_run_prop &p){
 									op1 = read_dat(p.memory,std::any_cast<struct dat_index>(op1).id);
 							}
 							long cond = any_to_int(op1);
+							
+							if(n == swap('jiz')) cond = !cond;
 
 							if(!cond) break;
 							
@@ -326,6 +329,27 @@ std::any a_run( struct a_run_prop &p){
 								std::cout << "ERROR: JUMP TO NONEXISTANT LABEL \"" << *tok << "\""<<std::endl;
 							}
 							break;
+						}
+						case swap('call'):
+						{
+							++tok;
+							auto it = p.lbl_tbl.find(std::string(*tok));
+							p.stack.push(tok - p.tokz.begin());
+							if(it != p.lbl_tbl.end()){
+								tok = p.tokz.begin() + it->second;
+							}
+							else{
+								std::cout << "ERROR: CALL TO NONEXISTANT LABEL \"" << *tok << "\""<<std::endl;
+							}
+							break;
+						}
+						case swap('ret'):
+						{
+							long old = p.stack.top();
+							p.stack.pop();
+								tok = p.tokz.begin() + old;
+								break;
+					
 						}
 						case swap('cie'):
 						{
@@ -616,7 +640,7 @@ std::any a_run( struct a_run_prop &p){
 							
 							break;
 						}		
-						case swap('ret'):
+						case swap('ext'):
 						{	
 							++tok;
 

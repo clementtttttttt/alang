@@ -3,13 +3,13 @@
 #include <unordered_map>
 #include <any>
 
-#include <queue>
+#include <stack>
 
 struct a_run_prop{
 	std::unordered_map<std::string,unsigned long> lbl_tbl;
 	std::vector<std::any> memory;
 	char *pped;	
-	std::queue<char*> stack;
+	std::stack<unsigned long> stack;
 	std::vector<char*> tokz;
 };
 
